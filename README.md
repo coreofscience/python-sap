@@ -1,2 +1,2 @@
-# python-tos
-Python Tree of Science package
+# python-sap
+Python SAP
