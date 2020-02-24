@@ -12,6 +12,9 @@ with open("HISTORY.rst") as history_file:
 
 requirements = [
     "Click>=7.0",
+    "python-igraph==0.8.0",
+    "Jinja2==2.11.1",
+    "jellyfish==0.7.2",
 ]
 
 setup_requirements = [
