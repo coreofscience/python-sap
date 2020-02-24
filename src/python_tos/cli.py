@@ -1,16 +1,24 @@
-"""Console script for python_tos."""
+"""Console script for python_sap."""
 import sys
 import click
 
+import python_tos.examples as examples
 
-@click.command()
+PACKAGE_EXAMPLES = {
+    "isi_to_graphml": examples.isi_to_graphml
+}
+
+@click.group()
 def main(args=None):
-    """Console script for python_tos."""
-    click.echo("Replace this message by putting your code into "
-               "python_tos.cli.main")
-    click.echo("See click documentation at https://click.palletsprojects.com/")
-    return 0
+    """
+    A little cli for wos tools.
+    """
 
-
-if __name__ == "__main__":
-    sys.exit(main())  # pragma: no cover
+@main.command("run-example")
+@click.argument('name')
+def run_example(name):
+    example = PACKAGE_EXAMPLES.get(name)
+    if callable(example):
+        example()
+    else:
+        click.echo("script name not allowed", err=True)
