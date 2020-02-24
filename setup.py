@@ -41,7 +41,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     description="Python Tree of Science package",
-    entry_points={"console_scripts": ["tos=python_tos.cli:main",],},
+    entry_points={"console_scripts": ["tos=python_tos.cli:main", "sap=python_sap.cli:main",],},
     install_requires=requirements,
     license="MIT license",
     long_description=readme + "\n\n" + history,
