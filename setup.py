@@ -4,14 +4,13 @@
 
 from setuptools import setup, find_packages
 
-with open("README.rst") as readme_file:
+with open("README.md") as readme_file:
     readme = readme_file.read()
-
-with open("HISTORY.rst") as history_file:
-    history = history_file.read()
 
 requirements = [
     "Click>=7.0",
+    "python-igraph==0.8.0",
+    "jellyfish==0.7.2",
 ]
 
 setup_requirements = [
@@ -38,13 +37,14 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     description="Python Tree of Science package",
-    entry_points={"console_scripts": ["tos=python_tos.cli:main",],},
+    entry_points={"console_scripts": ["sap=sap.cli:main",],},
     install_requires=requirements,
     license="MIT license",
-    long_description=readme + "\n\n" + history,
+    long_description=readme,
+    long_description_content_type="text/markdown",
     include_package_data=True,
-    keywords="python_tos",
-    name="python_tos",
+    keywords="python-sap",
+    name="python-sap",
     packages=find_packages(where="src"),
     package_dir={"": "src"},
     setup_requires=setup_requirements,

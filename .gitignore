@@ -127,3 +127,7 @@ dmypy.json
 # Pipenv files
 Pipfile
 Pipfile.lock
+
+# Examples generated files.
+src/python_sap/examples/visjs_export/tree.html
+src/python_tos/examples/isi_to_graphml/graph.graphml
