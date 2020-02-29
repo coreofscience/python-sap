@@ -13,6 +13,8 @@ __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
 __version__ = "0.1.0"
 
+WANDER = 0
+
 
 def tos_sap(collection: CollectionLazy):
     """
@@ -62,7 +64,9 @@ def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
     graph = graph.subgraph(valid_vs)
     for component in graph.clusters(ig.WEAK):
         # TODO: maybe we can decide if yield that according to some conditions
-        yield graph.subgraph(component)
+        subgraph = graph.subgraph(component)
+        if subgraph.vcount() > 1 and subgraph.ecount() > 1:
+            yield subgraph
 
 
 def root(graph: ig.Graph) -> ig.Graph:
@@ -211,6 +215,9 @@ def sap(
 
 def _paths(adjlist, source, target, path=[], on_find_path=None):
     # TODO: kill me and use `Graph.get_all_simple_paths`.
+    global WANDER
+    WANDER += 1
+    print(f"wandering {WANDER}")
     if source == target and callable(on_find_path):
         final_path = path.copy()
         # Remove last position because this is the same target vertex.
@@ -231,16 +238,14 @@ def _paths(adjlist, source, target, path=[], on_find_path=None):
 def _build_attributes(graph: ig.Graph) -> ig.Graph:
     new_graph = graph.copy()
     pattern = re.compile(
-        r"".join(
-            [
-                "^(?P<AU>[^,]+)?, ",
-                "(?P<PY>\d{4})?, ",
-                "(?P<SO>[^,]+)?",
-                "(, V(?P<VL>\d+))?",
-                "(, P(?P<PG>\d+))?",
-                "(, DOI (?P<DI>.+))?",
-            ]
-        )
+        r"""^(?P<AU>[^,]+)?,    # First author
+            (?P<PY>\d{4})?,     # Publication year
+            (?P<SO>[^,]+)?      # Journal
+            (, V(?P<VL>\d+))?   # Volume
+            (, P(?P<PG>\d+))?   # Start page
+            (, DOI (?P<DI>.+))? # The all important DOI
+            """,
+        re.X,
     )
 
     classified_labels = [
@@ -250,7 +255,6 @@ def _build_attributes(graph: ig.Graph) -> ig.Graph:
         for line in new_graph.vs["name"]
     ]
 
-    # TODO: It's necessary to fix the year number.
     for key in ["AU", "DI", "PG", "PY", "SO", "VL"]:
         new_graph.vs[key] = [
             int(article[key] or 0) if key == "PY" else article[key]
