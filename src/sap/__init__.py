@@ -13,8 +13,6 @@ __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
 __version__ = "0.1.0"
 
-WANDER = 0
-
 
 def tos_sap(collection: CollectionLazy):
     """
@@ -127,7 +125,7 @@ def leaf(graph: ig.Graph) -> ig.Graph:
     # 2. root conected count (currently this is the used option).
     connections_count = [sum([1 for i in j if isinstance(i, int)]) for j in conections]
 
-    items = zip(new_graph.vs[potential_leaves].indices, connections_count)
+    items = zip(potential_leaves, connections_count)
 
     sorted_items = sorted(items, key=itemgetter(1), reverse=True)
     potential_leaves = list(zip(*sorted_items))[0]
@@ -215,9 +213,6 @@ def sap(
 
 def _paths(adjlist, source, target, path=[], on_find_path=None):
     # TODO: kill me and use `Graph.get_all_simple_paths`.
-    global WANDER
-    WANDER += 1
-    print(f"wandering {WANDER}")
     if source == target and callable(on_find_path):
         final_path = path.copy()
         # Remove last position because this is the same target vertex.
