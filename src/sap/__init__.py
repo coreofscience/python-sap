@@ -14,6 +14,115 @@ __email__ = "dsvalenciah@gmail.com"
 __version__ = "0.1.0"
 
 
+def _sorted_nodes(graph: ig.Graph, by: str, reverse: bool = True) -> List[int]:
+    indices = graph.indices
+    attribtes = graph.vs[indices][by]
+    return [
+        index
+        for index, _attribute in sorted(
+            zip(indices, attribtes), key=lambda item: item[1], reverse=reverse,
+        )
+    ]
+
+
+class Sapper(object):
+    def __init__(
+        self,
+        max_roots: Optional[int] = 20,
+        max_leaves: Optional[int] = 50,
+        max_trunk: Optional[int] = 20,
+        min_leaf_connections: Optional[int] = 3,
+        max_leaf_age: Optional[int] = 5,
+    ):
+        self.max_roots = max_roots
+        self.max_leaves = max_leaves
+        self.max_trunk = max_trunk
+        self.min_leaf_connections = min_leaf_connections
+        self.max_leaf_age = max_leaf_age
+
+    def _sap(self, graph: ig.Graph) -> ig.Graph:
+        """
+        Computes the sap of each node.
+        """
+        return graph
+
+    def root(self, graph: ig.Graph) -> ig.Graph:
+        """
+        Takes in a connected graph and returns it labeled with a `root` property.
+
+        :return: Labeled graph with the root property.
+        """
+        new_graph = graph.copy()
+        valid_root = new_graph.vs.select(_outdegree_eq=0).indices
+
+        for attr in ("root", "extended_extended"):
+            new_graph.vs[attr] = 0
+            new_graph.vs[valid_root][attr] = new_graph.vs[valid_root].indegree()
+
+        if self.max_roots is not None:
+            sorted_roots = _sorted_nodes(new_graph, "root")
+            not_roots_anymore = sorted_roots[self.max_roots :]
+            new_graph.vs[not_roots_anymore]["root"] = 0
+
+        return new_graph
+
+    def leaf(self, graph: ig.Graph) -> ig.Graph:
+        """
+        Takes in a connected graph and returns it labeled with a `leaf` property.
+        :param graph: Connected and filtered graph to work with.
+        :param roots: Max number of roots to consider.
+        :param leaves: Max number of leaves to consider.
+        :return: Labeled graph with the leaf property.
+        """
+        new_graph = graph.copy()
+        try:
+            valid_root = new_graph.vs.select(root_gt=0).indices
+        except AttributeError:
+            raise TypeError("It's necessary to have some roots")
+        if not valid_root:
+            raise TypeError("It's necessary to have some roots")
+
+        potential_leaves = new_graph.vs.select(_indegree_eq=0).indices
+
+        # Connections between roots and potential leaves.
+        conections = new_graph.shortest_paths_dijkstra(
+            source=potential_leaves, target=valid_root
+        )
+        connection_counts = [
+            sum([1 for i in connection_lenghts if isinstance(i, int)])
+            for connection_lenghts in conections
+        ]
+
+        for attr in ("leaf", "extended_leaf"):
+            new_graph.vs[attr] = 0
+            new_graph.vs[potential_leaves][attr] = connection_counts
+
+        if self.max_leaf_age is not None:
+            newest_publication_year = max(new_graph.vs[potential_leaves]["PY"])
+            earliest_publication_year = newest_publication_year - self.max_leaf_age
+            not_leaves_anymore = graph.vs.select(PY_gt=earliest_publication_year)
+            new_graph.vs[not_leaves_anymore]["leaf"] = 0
+
+        if self.max_leaves is not None:
+            sorted_leaves = _sorted_nodes(new_graph, "leaf")
+            not_leaves_anymore = sorted_leaves[self.max_leaves :]
+            new_graph.vs[not_leaves_anymore]["leaf"] = 0
+
+        return new_graph
+
+    def trunk(self, graph: ig.Graph) -> ig.Graph:
+        """
+        Tags leaves.
+        """
+        return graph
+
+    def tree(self, graph: ig.Graph) -> ig.Graph:
+        """
+        Tags leaves.
+        """
+        return graph
+
+
 def tos_sap(collection: CollectionLazy):
     """
     Takes in a connected graph and returns it with `root`, `leave` and `trunk`
@@ -75,19 +184,9 @@ def root(graph: ig.Graph) -> ig.Graph:
     :return: Labeled graph with the root property.
     """
     new_graph = graph.copy()
-
     new_graph.vs["root"] = 0
-
     valid_root = new_graph.vs.select(_outdegree_eq=0).indices
-
-    items = zip(valid_root, new_graph.vs[valid_root].indegree())
-
-    sorted_items = sorted(items, key=itemgetter(1), reverse=True)
-
-    valid_root = list(zip(*sorted_items))[0]
-
     new_graph.vs[valid_root]["root"] = new_graph.vs[valid_root].indegree()
-
     return new_graph
 
 
@@ -123,21 +222,24 @@ def leaf(graph: ig.Graph) -> ig.Graph:
     # TODO: There are two options (select one of them):
     # 1. path count with roots.
     # 2. root conected count (currently this is the used option).
-    connections_count = [sum([1 for i in j if isinstance(i, int)]) for j in conections]
+    connection_counts = [
+        sum([1 for i in connection_lenghts if isinstance(i, int)])
+        for connection_lenghts in conections
+    ]
 
-    items = zip(potential_leaves, connections_count)
+    new_graph.vs["leaf"] = 0
+    new_graph.vs["extended_leaf"] = 0
+    new_graph.vs[potential_leaves]["leaf"] = connection_counts
 
-    sorted_items = sorted(items, key=itemgetter(1), reverse=True)
-    potential_leaves = list(zip(*sorted_items))[0]
-
-    newer_leaf_year = max(new_graph.vs[potential_leaves]["PY"]) - 5
+    newest_publication_year = max(new_graph.vs[potential_leaves]["PY"])
+    earliest_publication_year = newest_publication_year - self.max_leaf_age
 
     for i, potential_leaf in enumerate(potential_leaves):
         publication_year = int(new_graph.vs[potential_leaf]["PY"])
-        is_new_enough = publication_year >= newer_leaf_year
+        is_new_enough = publication_year >= earliest_publication_year
         if is_new_enough:
-            new_graph.vs[potential_leaf]["leaf"] = connections_count[i]
-        new_graph.vs[potential_leaf]["extended_leaf"] = connections_count[i]
+            new_graph.vs[potential_leaf]["leaf"] = connection_counts[i]
+        new_graph.vs[potential_leaf]["extended_leaf"] = connection_counts[i]
 
     return new_graph
 
