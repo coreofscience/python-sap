@@ -40,11 +40,56 @@ class Sapper(object):
         self.min_leaf_connections = min_leaf_connections
         self.max_leaf_age = max_leaf_age
 
-    def _sap(self, graph: ig.Graph) -> ig.Graph:
+    def sap(self, graph: ig.Graph) -> ig.Graph:
         """
         Computes the sap of each node.
         """
-        return graph
+        new_graph = graph.copy()
+        try:
+            valid_root = new_graph.vs.select(root_gt=0)
+            valid_leaves = new_graph.vs.select(leaf_gt=0)
+        except AttributeError:
+            raise TypeError("The graph needs to have a 'root' and a 'leaf' attribute")
+        if not valid_root or not valid_leaves:
+            raise TypeError("The graph needs to have at least some roots and leafs")
+
+        new_graph.vs["_raw_sap"] = 0
+        new_graph.vs["_root_connections"] = 0
+        valid_root["_raw_sap"] = valid_root["root"]
+        valid_root["_root_connections"] = 1
+        topological_order = new_graph.topological_sorting()
+        for index in reversed(topological_order):
+            neighbors = [n.index for n in new_graph.vs[index].neighbors(mode=ig.OUT)]
+            if neighbors:
+                new_graph.vs[index]["_raw_sap"] = sum(
+                    new_graph.vs[neighbors]["_raw_sap"]
+                )
+                new_graph.vs[index]["_root_connections"] = sum(
+                    new_graph.vs[neighbors]["_root_connections"]
+                )
+
+        new_graph.vs["_elaborate_sap"] = 0
+        new_graph.vs["_leaf_connections"] = 0
+        valid_leaves["_elaborate_sap"] = valid_leaves["leaf"]
+        valid_leaves["_leaf_connections"] = 1
+        topological_order = new_graph.topological_sorting(mode=ig.IN)
+        for index in reversed(topological_order):
+            neighbors = [n.index for n in new_graph.vs[index].neighbors(mode=ig.IN)]
+            if neighbors:
+                new_graph.vs[index]["_elaborate_sap"] = sum(
+                    new_graph.vs[neighbors]["_elaborate_sap"]
+                )
+                new_graph.vs[index]["_leaf_connections"] = sum(
+                    new_graph.vs[neighbors]["_leaf_connections"]
+                )
+
+        new_graph.vs["sap"] = [
+            v["_leaf_connections"] * v["_raw_sap"]
+            + v["_root_connections"] * v["_elaborate_sap"]
+            for v in new_graph.vs
+        ]
+
+        return new_graph
 
     def root(self, graph: ig.Graph) -> ig.Graph:
         """
@@ -288,6 +333,8 @@ def sap(
 
     trunk_indices = []
     new_graph.vs["trunk"] = 0
+    new_graph.vs["_found"] = 0
+    new_graph.vs["_crosses"] = 0
 
     def on_find_path(source, target, path):
         for trunk in path:
@@ -295,6 +342,7 @@ def sap(
             new_graph.vs[trunk]["trunk"] += (
                 new_graph.vs[leaf]["leaf"] + new_graph.vs[root]["root"]
             )
+            new_graph.vs[trunk]["_found"] += 1
             if trunk not in trunk_indices:
                 trunk_indices.append(trunk)
 
@@ -302,6 +350,13 @@ def sap(
     for root in valid_root:
         for leaf in valid_leaves:
             _paths(adjlist, leaf, root, on_find_path=on_find_path)
+
+    for root in valid_root:
+        for leaf in valid_leaves:
+            paths = new_graph.get_all_simple_paths(leaf, root)
+            for path in paths:
+                for vertex in path:
+                    new_graph.vs[vertex]["_crosses"] += 1
 
     items = zip(trunk_indices, new_graph.vs[trunk_indices]["trunk"])
 
