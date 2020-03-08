@@ -3,7 +3,7 @@ import sys
 
 import click
 
-from sap import Sapper, load, CollectionLazy, sap
+from sap import Sapper, load, CollectionLazy
 
 
 @click.group()
@@ -21,7 +21,7 @@ def explore(sources):
     graph = sapper.root(graph)
     graph = sapper.leaf(graph)
     graph = sapper.sap(graph)
-    graph = sap(graph)
+    graph = sapper.trunk(graph)
     trunk = graph.vs.select(trunk_gt=0)
     click.echo(
         "\n".join(
@@ -31,7 +31,6 @@ def explore(sources):
                     zip(
                         trunk["sap"],
                         trunk["_connections"],
-                        trunk["_found"],
                         trunk["trunk"],
                         trunk["leaf"],
                         [f"https://doi.org/{d}" for d in trunk["DI"]],
@@ -42,16 +41,3 @@ def explore(sources):
             ]
         )
     )
-
-    import matplotlib.pyplot as plt
-
-    plt.figure()
-    plt.plot(trunk["sap"], trunk["trunk"], "o")
-    plt.grid(True)
-    plt.savefig("./scratch/sap.pdf")
-
-    plt.figure()
-    plt.plot(trunk["_connections"], trunk["_found"], "o")
-    plt.plot(trunk["_connections"], trunk["_crosses"], "o")
-    plt.grid(True)
-    plt.savefig("./scratch/conns.pdf")
