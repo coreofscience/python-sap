@@ -4,7 +4,7 @@ import re
 from datetime import date
 from itertools import chain
 from operator import itemgetter
-from typing import Iterator, Optional
+from typing import Iterator, Optional, List
 
 import igraph as ig
 from wostools import CollectionLazy
@@ -15,7 +15,7 @@ __version__ = "0.1.0"
 
 
 def _sorted_nodes(graph: ig.Graph, by: str, reverse: bool = True) -> List[int]:
-    indices = graph.indices
+    indices = graph.vs.indices
     attribtes = graph.vs[indices][by]
     return [
         index
@@ -55,7 +55,7 @@ class Sapper(object):
         new_graph = graph.copy()
         valid_root = new_graph.vs.select(_outdegree_eq=0).indices
 
-        for attr in ("root", "extended_extended"):
+        for attr in ("root", "extended_root"):
             new_graph.vs[attr] = 0
             new_graph.vs[valid_root][attr] = new_graph.vs[valid_root].indegree()
 
@@ -82,26 +82,32 @@ class Sapper(object):
         if not valid_root:
             raise TypeError("It's necessary to have some roots")
 
-        potential_leaves = new_graph.vs.select(_indegree_eq=0).indices
+        new_graph.vs["_connections"] = 0
+        new_graph.vs[valid_root]["_connections"] = 1
+        topological_order = new_graph.topological_sorting()
+        for index in reversed(topological_order):
+            neighbors = [n.index for n in new_graph.vs[index].neighbors(mode=ig.OUT)]
+            if neighbors:
+                new_graph.vs[index]["_connections"] = sum(
+                    new_graph.vs[neighbors]["_connections"]
+                )
 
-        # Connections between roots and potential leaves.
-        conections = new_graph.shortest_paths_dijkstra(
-            source=potential_leaves, target=valid_root
-        )
-        connection_counts = [
-            sum([1 for i in connection_lenghts if isinstance(i, int)])
-            for connection_lenghts in conections
-        ]
+        potential_leaves = new_graph.vs.select(_indegree_eq=0).indices
+        leaf_connections = new_graph.vs[potential_leaves]["_connections"]
 
         for attr in ("leaf", "extended_leaf"):
             new_graph.vs[attr] = 0
-            new_graph.vs[potential_leaves][attr] = connection_counts
+            new_graph.vs[potential_leaves][attr] = leaf_connections
+
+        if self.min_leaf_connections is not None:
+            not_leaves_anymore = new_graph.vs.select(leaf_lt=self.min_leaf_connections)
+            not_leaves_anymore["leaf"] = 0
 
         if self.max_leaf_age is not None:
             newest_publication_year = max(new_graph.vs[potential_leaves]["PY"])
             earliest_publication_year = newest_publication_year - self.max_leaf_age
             not_leaves_anymore = graph.vs.select(PY_gt=earliest_publication_year)
-            new_graph.vs[not_leaves_anymore]["leaf"] = 0
+            not_leaves_anymore["leaf"] = 0
 
         if self.max_leaves is not None:
             sorted_leaves = _sorted_nodes(new_graph, "leaf")
@@ -335,12 +341,12 @@ def _paths(adjlist, source, target, path=[], on_find_path=None):
 def _build_attributes(graph: ig.Graph) -> ig.Graph:
     new_graph = graph.copy()
     pattern = re.compile(
-        r"""^(?P<AU>[^,]+)?,    # First author
-            (?P<PY>\d{4})?,     # Publication year
-            (?P<SO>[^,]+)?      # Journal
-            (, V(?P<VL>\d+))?   # Volume
-            (, P(?P<PG>\d+))?   # Start page
-            (, DOI (?P<DI>.+))? # The all important DOI
+        r"""^(?P<AU>[^,]+)?,[ ]         # First author
+            (?P<PY>\d{4})?,[ ]          # Publication year
+            (?P<SO>[^,]+)?              # Journal
+            (,[ ]V(?P<VL>[\w\d-]+))?    # Volume
+            (,[ ][Pp](?P<PG>\d+))?      # Start page
+            (,[ ]DOI[ ](?P<DI>.+))?     # The all important DOI
             """,
         re.X,
     )
