@@ -26,12 +26,14 @@ class Sapper(object):
         max_trunk: Optional[int] = 20,
         min_leaf_connections: Optional[int] = 3,
         max_leaf_age: Optional[int] = 5,
+        default_clear_graph: bool = True,
     ):
         self.max_roots = max_roots
         self.max_leaves = max_leaves
         self.max_trunk = max_trunk
         self.min_leaf_connections = min_leaf_connections
         self.max_leaf_age = max_leaf_age
+        self.default_clear_graph = default_clear_graph
 
     def sap(self, graph: ig.Graph) -> ig.Graph:
         """
@@ -174,43 +176,32 @@ class Sapper(object):
         if self.max_trunk is not None:
             sorted_leaves = _sorted_nodes(new_graph, "trunk")
             not_leaves_anymore = sorted_leaves[self.max_trunk :]
-            new_graph.vs[not_leaves_anymore]["leaf"] = 0
+            new_graph.vs[not_leaves_anymore]["trunk"] = 0
 
         return new_graph
 
-    def tree(self, graph: ig.Graph) -> ig.Graph:
+    def clear(self, graph: ig.Graph) -> ig.Graph:
         """
-        Tags leaves.
+        Returns a copy of the graph clear of untagged nodes.
+        """
+        graph = graph.copy()
+        graph = graph.subgraph(
+            graph.vs.select(lambda v: v["root"] > 0 or v["trunk"] > 0 or v["leaf"] > 0)
+        )
+        return graph
+
+    def tree(self, graph: ig.Graph, clear: Optional[bool] = None) -> ig.Graph:
+        """
+        Computes the whole tree.
         """
         graph = graph.copy()
         graph = self.root(graph)
         graph = self.leaf(graph)
         graph = self.sap(graph)
         graph = self.trunk(graph)
+        if (clear is not None and clear) or self.default_clear_graph:
+            graph = self.clear(graph)
         return graph
-
-
-def tos_sap(collection: CollectionLazy):
-    """
-    Takes in a connected graph and returns it with `root`, `leave` and `trunk`
-    properties.
-
-    This function probably only calls other functions.
-    :param graph: Filtered and connected graph to work with.
-    :return: Labeled graph with root, trunk and leaves.
-    """
-    tree_parts = ["root", "leaf", "extended_leaf", "trunk", "potential_leaf"]
-    sapper = Sapper()
-    for tree in load(collection):
-        print(tree.summary())
-        try:
-            tree = sapper.tree(tree)
-            for part in tree_parts:
-                count = len(tree.vs.select(**{f"{part}_gt": 0}))
-                print(f"{part}: {count}")
-        except BaseException as e:
-            print(e)
-        print()
 
 
 def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
@@ -236,9 +227,8 @@ def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
     ).indices
     graph = graph.subgraph(valid_vs)
     for component in graph.clusters(MODE_WEAK):
-        # TODO: maybe we can decide if yield that according to some conditions
         subgraph = graph.subgraph(component)
-        if subgraph.vcount() > 1 and subgraph.ecount() > 1:
+        if len(subgraph.vs.select(_indegree_gt=0, _outdegree_gt=0)) > 0:
             yield subgraph
 
 
