@@ -18,7 +18,7 @@ MODE_OUT = "OUT"
 MODE_WEAK = "WEAK"
 
 
-class Sapper(object):
+class Sap(object):
     def __init__(
         self,
         max_roots: Optional[int] = 20,

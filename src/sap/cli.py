@@ -1,10 +1,11 @@
 """Console script for python_sap."""
+import contextlib
 import sys
 
 import click
 import igraph
 
-from sap import Sapper, load, CollectionLazy
+from sap import Sap, load, CollectionLazy
 
 
 @click.group()
@@ -43,7 +44,7 @@ def main(ctx, whole_graph, **kwargs):
     Trick: pass negative values to the options to make the number unlimited.
     """
     ctx.ensure_object(dict)
-    ctx.obj["sapper"] = Sapper(
+    ctx.obj["sapper"] = Sap(
         default_clear_graph=not whole_graph,
         **{
             key: value if value > 0 else None
@@ -58,6 +59,9 @@ def main(ctx, whole_graph, **kwargs):
 @click.option("--output", "-o", type=click.File("w"), default="-")
 @click.pass_context
 def export(ctx, sources, output):
+    """
+    Creates a tree from a set of files and stores it in graphml format.
+    """
     sapper = ctx.obj["sapper"]
     graph = next(load(CollectionLazy(*sources)))
     graph = sapper.tree(graph)
@@ -69,18 +73,31 @@ def export(ctx, sources, output):
 @click.option("--output", "-o", type=click.File("w"), default="-")
 @click.pass_context
 def describe(ctx, sources, output):
+    """
+    Describe every graph in a given bibliography collection.
+    """
     sapper = ctx.obj["sapper"]
     for graph in load(CollectionLazy(*sources)):
-        graph = sapper.tree(graph)
-        click.echo(graph.summary())
+        with contextlib.suppress(TypeError):
+            graph = sapper.tree(graph)
+            click.echo(graph.summary() + "\n")
 
 
 @main.command()
 @click.argument("sources", type=click.File("r"), nargs=-1)
 @click.option("--output", "-o", type=click.File("w"), default="-")
-@click.option("--open", "_open", is_flag=True, default=False)
+@click.option(
+    "--open",
+    "_open",
+    default=0,
+    help="open this many articles on your browser",
+    show_default=True,
+)
 @click.pass_context
 def trunk(ctx, sources, output, _open):
+    """
+    Computes and shows the trunk of the biggest tree on a bibliography collection.
+    """
     show("trunk", ctx.obj["sapper"], sources, output, _open)
 
 
@@ -88,17 +105,36 @@ def trunk(ctx, sources, output, _open):
 @click.argument("sources", type=click.File("r"), nargs=-1)
 @click.option("--output", "-o", type=click.File("w"), default="-")
 @click.option("--open", "_open", is_flag=True, default=False)
+@click.option(
+    "--open",
+    "_open",
+    default=0,
+    help="open this many articles on your browser",
+    show_default=True,
+)
 @click.pass_context
 def leaf(ctx, sources, output, _open):
+    """
+    Computes and shows the leaf of the biggest tree on a bibliography collection.
+    """
     show("leaf", ctx.obj["sapper"], sources, output, _open)
 
 
 @main.command()
 @click.argument("sources", type=click.File("r"), nargs=-1)
 @click.option("--output", "-o", type=click.File("w"), default="-")
-@click.option("--open", "_open", is_flag=True, default=False)
+@click.option(
+    "--open",
+    "_open",
+    default=0,
+    help="open this many articles on your browser",
+    show_default=True,
+)
 @click.pass_context
 def root(ctx, sources, output, _open):
+    """
+    Computes and shows the root of the biggest tree on a bibliography collection.
+    """
     show("root", ctx.obj["sapper"], sources, output, _open)
 
 
@@ -115,7 +151,7 @@ def show(part, sapper, sources, output, _open):
         )
         first, *_ = items
         max_val = first[0]
-        for value, name, doi in items:
+        for i, (value, name, doi) in enumerate(items):
             output.write(
                 " ".join(
                     [
@@ -126,5 +162,5 @@ def show(part, sapper, sources, output, _open):
                     ]
                 )
             )
-            if _open and doi:
+            if i < _open and doi:
                 click.launch(f"https://dx.doi.org/{doi}")
