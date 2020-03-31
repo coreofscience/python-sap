@@ -11,7 +11,7 @@ requirements = [
     "Click>=7.0",
     "python-igraph==0.8.0",
     "jellyfish==0.7.2",
-    "wostools==1.0.1",
+    "wostools==1.1.0",
 ]
 
 setup_requirements = [

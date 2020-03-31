@@ -213,12 +213,22 @@ def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
     :param isi_files: List of files.
     :return: Filtered connected components.
     """
-    pairs = list(collection.citation_pairs())
-    nodes = list(set(chain.from_iterable(pairs)))
+    vertices = {}
+    pair_labels = []
+    for article, reference in collection.citation_pairs(
+        pair_parser=collection.metadata_pair_parser
+    ):
+        art_label, art_attrs = article
+        ref_label, ref_attrs = reference
+        vertices[art_label] = {**art_attrs, "_record_type": "article"}
+        vertices[ref_label] = {**ref_attrs, "_record_type": "reference"}
+        pair_labels.append((art_label, ref_label))
+
     graph = ig.Graph(directed=True)
-    graph.add_vertices(nodes)
-    graph.add_edges(pairs)
-    graph = _build_attributes(graph)
+    for label, attrs in vertices.items():
+        graph.add_vertex(name=label, label=label, **attrs)
+
+    graph.add_edges(pair_labels)
     graph = graph.simplify()
     valid_vs = graph.vs.select(lambda v: v["label"].lower() != "null").indices
     graph = graph.subgraph(valid_vs)
@@ -230,37 +240,6 @@ def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
         subgraph = graph.subgraph(component)
         if len(subgraph.vs.select(_indegree_gt=0, _outdegree_gt=0)) > 0:
             yield subgraph
-
-
-def _build_attributes(graph: ig.Graph) -> ig.Graph:
-    new_graph = graph.copy()
-    pattern = re.compile(
-        r"""^(?P<AU>[^,]+)?,[ ]         # First author
-            (?P<PY>\d{4})?,[ ]          # Publication year
-            (?P<SO>[^,]+)?              # Journal
-            (,[ ]V(?P<VL>[\w\d-]+))?    # Volume
-            (,[ ][Pp](?P<PG>\d+))?      # Start page
-            (,[ ]DOI[ ](?P<DI>.+))?     # The all important DOI
-            """,
-        re.X,
-    )
-
-    classified_labels = [
-        pattern.match(line).groupdict()
-        if pattern.match(line)
-        else {"AU": None, "DI": None, "PG": None, "PY": None, "SO": None, "VL": None,}
-        for line in new_graph.vs["name"]
-    ]
-
-    for key in ["AU", "DI", "PG", "PY", "SO", "VL"]:
-        new_graph.vs[key] = [
-            int(article[key] or 0) if key == "PY" else article[key]
-            for article in classified_labels
-        ]
-
-    new_graph.vs["label"] = [f'{vs["PY"]}\n{vs["AU"]}' for vs in new_graph.vs]
-
-    return new_graph
 
 
 def _sorted_nodes(graph: ig.Graph, by: str, reverse: bool = True) -> List[int]:
