@@ -218,10 +218,8 @@ def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
     for article, reference in collection.citation_pairs(
         pair_parser=collection.metadata_pair_parser
     ):
-        art_label, art_attrs = article
-        ref_label, ref_attrs = reference
-        vertices[art_label] = {**art_attrs, "_record_type": "article"}
-        vertices[ref_label] = {**ref_attrs, "_record_type": "reference"}
+        art_label, vertices[art_label] = article
+        ref_label, vertices[ref_label] = reference
         pair_labels.append((art_label, ref_label))
 
     graph = ig.Graph(directed=True)
