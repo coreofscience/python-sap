@@ -8,10 +8,9 @@ with open("README.md") as readme_file:
     readme = readme_file.read()
 
 requirements = [
-    "Click>=7.0",
-    "python-igraph==0.8.0",
-    "jellyfish==0.7.2",
-    "wostools==1.1.0",
+    "Click>=7.0,<8",
+    "python-igraph>=0.8.0,<1",
+    "wostools>=1.1.0,<2",
 ]
 
 setup_requirements = [
@@ -27,8 +26,10 @@ setup(
     author_email="jdalzatec@unal.edu.co",
     python_requires=">=3.5",
     classifiers=[
-        "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
         "Intended Audience :: Developers",
+        "Intended Audience :: Education",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
