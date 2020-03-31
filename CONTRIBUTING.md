@@ -60,7 +60,7 @@ local development.
 
 2.  Clone your fork locally:
 
-    ``` {.shell}
+    ```shell
     $ git clone git@github.com:your_name_here/python_tos.git
     ```
 
@@ -68,7 +68,7 @@ local development.
     virtualenvwrapper installed, this is how you set up your fork for
     local development:
 
-    ``` {.shell}
+    ```shell
     $ mkvirtualenv python_tos
     $ cd python_tos/
     $ python setup.py develop
@@ -76,7 +76,7 @@ local development.
 
 4.  Create a branch for local development:
 
-    ``` {.shell}
+    ```shell
     $ git checkout -b name-of-your-bugfix-or-feature
     ```
 
@@ -86,7 +86,7 @@ local development.
     flake8 and the tests, including testing other Python versions with
     tox:
 
-    ``` {.shell}
+    ```shell
     $ flake8 python_tos tests
     $ python setup.py test or pytest
     $ tox
@@ -96,7 +96,7 @@ local development.
 
 6.  Commit your changes and push your branch to GitHub:
 
-    ``` {.shell}
+    ```shell
     $ git add .
     $ git commit -m "Your detailed description of your changes."
     $ git push origin name-of-your-bugfix-or-feature
@@ -113,4 +113,3 @@ Before you submit a pull request, check that it meets these guidelines:
 2.  If the pull request adds functionality, the docs should be updated.
     Put your new functionality into a function with a docstring, and add
     the feature to the list in README.md.
-3.  The pull request should work for P
