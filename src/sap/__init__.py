@@ -12,7 +12,7 @@ from wostools import CollectionLazy
 
 __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 MODE_IN = "IN"
 MODE_OUT = "OUT"
