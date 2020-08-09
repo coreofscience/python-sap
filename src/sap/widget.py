@@ -13,17 +13,7 @@ class Widget:
         self.graph = graph
 
     def _repr_html_(self):
-        nodes = [
-            {**vs.attributes(), "title": vs["label"], "label": None, "id": vs.index}
-            for vs in self.graph.vs
-        ]
-        edges = [
-            {"from": es.tuple[0], "to": es.tuple[1], "arrows": "to"}
-            for es in self.graph.es
-        ]
-        return TEMPLATE.replace('"__NODES__"', json.dumps(nodes)).replace(
-            '"__EDGES__"', json.dumps(edges)
-        )
+        return TEMPLATE
 
 
 def display(graph):
