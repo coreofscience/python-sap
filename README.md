@@ -56,10 +56,10 @@ to explore all the commands and options you can use.
 The Python API is quite small, here's the minimal working example:
 
 ```python
-from sap import load, Sap, CollectionLazy
+from sap import load, Sap, CachedCollection
 
 sap = Sap()
-graph = next(load(CollectionLazy(file1, file2, ...)))
+graph = next(load(CachedCollection(file1, file2, ...)))
 tree = sap.tree()
 ```
 
