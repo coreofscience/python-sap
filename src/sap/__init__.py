@@ -13,6 +13,7 @@ __version__ = "0.1.1"
 MODE_IN = "IN"
 MODE_OUT = "OUT"
 MODE_WEAK = "WEAK"
+MODE_STRONG = "STRONG"
 
 
 logger = logging.getLogger(__name__)
@@ -239,8 +240,8 @@ def load(collection: CachedCollection) -> Iterator[Graph]:
         lambda v: v.indegree() != 1 or v.outdegree() != 0
     ).indices
     graph = graph.subgraph(valid_vs)
-    for component in graph.clusters(MODE_WEAK):
-        subgraph = graph.subgraph(component)
+    graph = _break_loops(graph)
+    for subgraph in graph.decompose(MODE_WEAK, minelements=2):
         if len(subgraph.vs.select(_indegree_gt=0, _outdegree_gt=0)) > 0:
             yield subgraph
 
@@ -253,7 +254,7 @@ def giant(collection: CachedCollection) -> Graph:
     :param CachedCollection collection: bibliographic collection
     :return: connected component graph
     """
-    return next(load(collection))
+    return next(load(collection), None)
 
 
 def _sorted_nodes(graph: Graph, by: str, reverse: bool = True) -> List[int]:
@@ -265,3 +266,13 @@ def _sorted_nodes(graph: Graph, by: str, reverse: bool = True) -> List[int]:
             zip(indices, attribtes), key=lambda item: item[1], reverse=reverse,
         )
     ]
+
+
+def _break_loops(graph: Graph) -> Graph:
+    loops = graph.decompose(MODE_STRONG, minelements=2)
+    _graph = graph.copy()
+    for loop in loops:
+        edges = [(e.source_vertex["label"], e.target_vertex["label"]) for e in loop.es]
+        _graph.delete_edges(edges)
+    _graph.simplify()
+    return _graph
