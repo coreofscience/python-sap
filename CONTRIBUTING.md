@@ -11,7 +11,7 @@ Types of Contributions
 
 ### Report Bugs
 
-Report bugs at <https://github.com/jdalzatec/python_tos/issues>.
+Report bugs at <https://github.com/coreofscience/python-sap/issues>.
 
 If you are reporting a bug, please include:
 
@@ -40,7 +40,7 @@ posts, articles, and such.
 ### Submit Feedback
 
 The best way to send feedback is to file an issue at
-<https://github.com/jdalzatec/python_tos/issues>.
+<https://github.com/coreofscience/python-sap/issues>.
 
 If you are proposing a feature:
 
@@ -61,7 +61,7 @@ local development.
 2.  Clone your fork locally:
 
     ```shell
-    $ git clone git@github.com:your_name_here/python_tos.git
+    $ git clone git@github.com:your_name_here/python-sap.git
     ```
 
 3.  Install your local copy into a virtualenv. Assuming you have
@@ -69,8 +69,8 @@ local development.
     local development:
 
     ```shell
-    $ mkvirtualenv python_tos
-    $ cd python_tos/
+    $ mkvirtualenv sap
+    $ cd python-sap/
     $ python setup.py develop
     ```
 
@@ -84,15 +84,14 @@ local development.
 
 5.  When you\'re done making changes, check that your changes pass
     flake8 and the tests, including testing other Python versions with
-    tox:
+    pytest:
 
     ```shell
-    $ flake8 python_tos tests
-    $ python setup.py test or pytest
-    $ tox
+    $ flake8 src tests
+    $ python setup.py test
     ```
 
-    To get flake8 and tox, just pip install them into your virtualenv.
+    To get flake8 and pytest, just pip install them into your virtualenv.
 
 6.  Commit your changes and push your branch to GitHub:
 

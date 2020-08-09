@@ -1,11 +1,11 @@
 """Console script for python_sap."""
-import contextlib
-import sys
+import logging
 
 import click
-import igraph
 
-from sap import Sap, load, CollectionLazy
+from sap import CollectionLazy, Sap, giant, load
+
+logger = logging.getLogger(__name__)
 
 
 @click.group()
@@ -36,8 +36,9 @@ from sap import Sap, load, CollectionLazy
     is_flag=True,
     default=False,
 )
+@click.option("--verbose", "-v", count=True, help="Show some debug information")
 @click.pass_context
-def main(ctx, whole_graph, **kwargs):
+def main(ctx, whole_graph, verbose, **kwargs):
     """
     A little cli for sap.
 
@@ -52,6 +53,12 @@ def main(ctx, whole_graph, **kwargs):
             if value is not None
         },
     )
+    if verbose == 1:
+        logging.basicConfig(level=logging.ERROR)
+    if verbose == 2:
+        logging.basicConfig(level=logging.INFO)
+    if verbose >= 3:
+        logging.basicConfig(level=logging.DEBUG)
 
 
 @main.command()
@@ -63,7 +70,7 @@ def export(ctx, sources, output):
     Creates a tree from a set of files and stores it in graphml format.
     """
     sapper = ctx.obj["sapper"]
-    graph = next(load(CollectionLazy(*sources)))
+    graph = giant(CollectionLazy(*sources))
     graph = sapper.tree(graph)
     graph.write(output, format="graphml")
 
@@ -78,9 +85,13 @@ def describe(ctx, sources, output):
     """
     sapper = ctx.obj["sapper"]
     for graph in load(CollectionLazy(*sources)):
-        with contextlib.suppress(TypeError):
+        try:
             graph = sapper.tree(graph)
             click.echo(graph.summary() + "\n")
+        except TypeError:
+            logger.exception(
+                f"There was an error processin the graph\n{graph.summary()}"
+            )
 
 
 @main.command()

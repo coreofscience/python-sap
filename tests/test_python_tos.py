@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-"""Tests for `python_tos` package."""
-
-import pytest
+"""Tests for `python-sap` package."""
 
 from click.testing import CliRunner
 

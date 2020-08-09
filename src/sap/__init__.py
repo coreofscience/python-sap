@@ -1,21 +1,25 @@
 """Top-level package for Python SAP."""
 
+import logging
 import re
 from datetime import date
 from itertools import chain
 from operator import itemgetter
-from typing import Iterator, Optional, List
+from typing import Iterator, List, Optional
 
 import igraph as ig
 from wostools import CollectionLazy
 
 __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 MODE_IN = "IN"
 MODE_OUT = "OUT"
 MODE_WEAK = "WEAK"
+
+
+logger = logging.getLogger(__name__)
 
 
 class Sap(object):
@@ -144,9 +148,15 @@ class Sap(object):
             not_leaves_anymore["leaf"] = 0
 
         if self.max_leaf_age is not None:
-            newest_publication_year = max(new_graph.vs[potential_leaves]["PY"])
+            ignored = "\n".join(new_graph.vs.select(PY_eq=None)["name"])
+            logging.info(f"Ignoring these nodes for year calculations:\n{ignored}")
+            newest_publication_year: int = max(
+                filter(None, new_graph.vs[potential_leaves]["PY"])
+            )
             earliest_publication_year = newest_publication_year - self.max_leaf_age
-            not_leaves_anymore = graph.vs.select(PY_gt=earliest_publication_year)
+            not_leaves_anymore = graph.vs.select(
+                PY_ne=None, PY_gt=earliest_publication_year
+            )
             not_leaves_anymore["leaf"] = 0
 
         if self.max_leaves is not None:
@@ -206,12 +216,11 @@ class Sap(object):
 
 def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
     """
-    Takes in a list of ISI files (or filenames) and spits out an iterator over their
-    connected components.
+    Takes in a collection of bibliographic records and gets out all the
+    connected components of their citation graph.
 
-    This function might be responsible for our filters.
-    :param isi_files: List of files.
-    :return: Filtered connected components.
+    :param CollectionLazy collection: bibliographic collection
+    :return: iterator over the connected components
     """
     vertices = {}
     pair_labels = []
@@ -238,6 +247,17 @@ def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
         subgraph = graph.subgraph(component)
         if len(subgraph.vs.select(_indegree_gt=0, _outdegree_gt=0)) > 0:
             yield subgraph
+
+
+def giant(collection: CollectionLazy) -> ig.Graph:
+    """
+    Takes in a collection of bibliographic records and gets out the giant pre
+    processed connected component.
+
+    :param CollectionLazy collection: bibliographic collection
+    :return: connected component graph
+    """
+    return next(load(collection))
 
 
 def _sorted_nodes(graph: ig.Graph, by: str, reverse: bool = True) -> List[int]:

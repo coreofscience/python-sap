@@ -1,1 +1,1 @@
-"""Unit test package for python_tos."""
+"""Unit test package for python-sap."""
