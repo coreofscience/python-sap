@@ -8,7 +8,7 @@ from wostools import CachedCollection
 
 __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 
 MODE_IN = "IN"
 MODE_OUT = "OUT"
@@ -262,7 +262,7 @@ def _sorted_nodes(graph: Graph, by: str, reverse: bool = True) -> List[int]:
     attribtes = graph.vs[indices][by]
     return [
         index
-        for index, _attribute in sorted(
+        for index, _ in sorted(
             zip(indices, attribtes), key=lambda item: item[1], reverse=reverse,
         )
     ]

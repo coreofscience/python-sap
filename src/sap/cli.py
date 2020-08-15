@@ -154,7 +154,7 @@ def show(part, sapper, sources, output, _open):
         tree = sapper.tree(graph)
         items = sorted(
             [
-                (vs[part], vs["name"], vs["DI"])
+                (vs[part], vs["name"], vs.attributes().get("DI"))
                 for vs in tree.vs.select(**{f"{part}_gt": 0})
             ],
             key=lambda t: t[0],

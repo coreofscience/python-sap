@@ -59,8 +59,8 @@ The Python API is quite small, here's the minimal working example:
 from sap import load, Sap, CachedCollection
 
 sap = Sap()
-graph = next(load(CachedCollection(file1, file2, ...)))
-tree = sap.tree()
+graph = giant(CachedCollection(file1, file2, ...))
+tree = sap.tree(giant)
 ```
 
 then `tree` is an `igraph.Graph` labeled with all the things you would need

@@ -6,6 +6,19 @@ import igraph as ig
 from igraph import VertexSeq
 
 
+def _sorted_seq(graph: ig.Graph, by: str):
+    vertices = graph.vs.select(**{f"{by}_gt": 0})
+    order = [
+        index
+        for index, _ in sorted(
+            zip(vertices.indices, vertices[by]),
+            key=(lambda item: item[1]),
+            reverse=True,
+        )
+    ]
+    return graph.vs[order]
+
+
 def _ensure_dots(author: str) -> str:
     author = author.replace(".", "")
     first, *rest = author.split(" ")
@@ -103,15 +116,15 @@ class Widget:
         html = TEMPLATE[:]
         html = html.replace(
             "<!-- ROOT ARTICLES -->",
-            _formatted_articles(self.graph.vs.select(root_gt=0)),
+            _formatted_articles(_sorted_seq(self.graph, "root")),
         )
         html = html.replace(
             "<!-- TRUNK ARTICLES -->",
-            _formatted_articles(self.graph.vs.select(trunk_gt=0)),
+            _formatted_articles(_sorted_seq(self.graph, "trunk")),
         )
         html = html.replace(
             "<!-- LEAF ARTICLES -->",
-            _formatted_articles(self.graph.vs.select(leaf_gt=0)),
+            _formatted_articles(_sorted_seq(self.graph, "leaf")),
         )
         return html
 
