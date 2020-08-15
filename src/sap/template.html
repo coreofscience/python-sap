@@ -1,0 +1,142 @@
+<style type="text/css">
+    .Tree {
+        font-family: Helvetica, Arial, Sans-Serif;
+        width: 100%;
+    }
+
+    .Tree-segment {
+        --color: 245, 162, 0;
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: row;
+    }
+
+    .Tree-segment-info {
+        width: 50px;
+    }
+
+    .Tree-segment-articles {
+        flex-grow: 1;
+    }
+
+    .Info {
+        z-index: 10;
+        position: relative;
+        top: 10px;
+        left: 5px;
+        width: 250px;
+        background-color: rgb(var(--color));
+        padding: 20px;
+        border-radius: 20px;
+        clip-path: circle(20px at 20px 20px);
+        color: white;
+        transition: clip-path 0.5s ease-in-out;
+        box-shadow: 0 3px 5px -5px black;
+    }
+
+    .Info:hover {
+        clip-path: circle(80%);
+    }
+
+    .Tree-segment.root {
+        --color: 245, 162, 0;
+    }
+
+    .Tree-segment.trunk {
+        --color: 130, 77, 30;
+    }
+
+    .Tree-segment.leave {
+        --color: 76, 172, 51;
+    }
+
+    .Article {
+        transition: background 0.5s ease;
+        box-shadow: 0 3px 5px -5px black;
+        margin-top: 5px;
+        padding: 15px;
+        width: calc(100% - 30px);
+        border-left: 5px solid rgb(var(--color));
+        position: relative;
+    }
+
+    .Article::after {
+        content: " ";
+        display: block;
+        position: absolute;
+        width: 0;
+        height: 0;
+        border-top: 2.5px solid transparent;
+        border-bottom: 2.5px solid transparent;
+        border-left: 2.5px solid rgb(var(--color));
+        left: 0px;
+        top: calc(50% - 2.5px);
+        transition: transform 0.5s ease-in-out;
+        transform-origin: 0 50%;
+        transform: scale(0, 0);
+    }
+
+    .Article:hover::after {
+        transform: scale(1, 1);
+    }
+
+    .Article:hover {
+        background-color: rgba(var(--color), 0.1);
+    }
+
+    a.Article-doi {
+        text-decoration: none;
+        color: lightseagreen;
+        filter: brightness(60%);
+        transition: all 0.5 ease-in-out;
+    }
+
+    a.Article-doi {
+        filter: brightness(90%);
+    }
+</style>
+<div class="Tree">
+    <div class="Tree-segment root">
+        <div class="Tree-segment-info">
+            <div class="Info">
+                <h3>Root</h3>
+                <p>
+                    Here you should find seminal articles from the original
+                    articles of your topic of interest.
+                </p>
+            </div>
+        </div>
+        <div class="Tree-segment-articles">
+            <!-- ROOT ARTICLES -->
+        </div>
+    </div>
+    <div class="Tree-segment trunk">
+        <div class="Tree-segment-info">
+            <div class="Info">
+                <h3>Trunk</h3>
+                <p>
+                    Here you should find articles where your topic of interest
+                    got a structure, these should be the first authors to
+                    discover the applicability of your topic of interest
+                </p>
+            </div>
+        </div>
+        <div class="Tree-segment-articles">
+            <!-- TRUNK ARTICLES -->
+        </div>
+    </div>
+    <div class="Tree-segment leaf">
+        <div class="Tree-segment-info">
+            <div class="Info">
+                <h3>Leaves</h3>
+                <p>
+                    Here you should find recent articles and reviews that should
+                    condense very well your topics.
+                </p>
+            </div>
+        </div>
+        <div class="Tree-segment-articles">
+            <!-- LEAF ARTICLES -->
+        </div>
+    </div>
+</div>

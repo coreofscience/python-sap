@@ -1,28 +1,25 @@
 """Top-level package for Python SAP."""
 
 import logging
-import re
-from datetime import date
-from itertools import chain
-from operator import itemgetter
 from typing import Iterator, List, Optional
 
-import igraph as ig
-from wostools import CollectionLazy
+from igraph import Graph
+from wostools import CachedCollection
 
 __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
-__version__ = "0.1.1"
+__version__ = "1.0.0"
 
 MODE_IN = "IN"
 MODE_OUT = "OUT"
 MODE_WEAK = "WEAK"
+MODE_STRONG = "STRONG"
 
 
 logger = logging.getLogger(__name__)
 
 
-class Sap(object):
+class Sap:
     def __init__(
         self,
         max_roots: Optional[int] = 20,
@@ -39,7 +36,7 @@ class Sap(object):
         self.max_leaf_age = max_leaf_age
         self.default_clear_graph = default_clear_graph
 
-    def sap(self, graph: ig.Graph) -> ig.Graph:
+    def sap(self, graph: Graph) -> Graph:
         """
         Computes the sap of each node.
         """
@@ -90,7 +87,7 @@ class Sap(object):
 
         return new_graph
 
-    def root(self, graph: ig.Graph) -> ig.Graph:
+    def root(self, graph: Graph) -> Graph:
         """
         Takes in a connected graph and returns it labeled with a `root` property.
 
@@ -110,7 +107,7 @@ class Sap(object):
 
         return new_graph
 
-    def leaf(self, graph: ig.Graph) -> ig.Graph:
+    def leaf(self, graph: Graph) -> Graph:
         """
         Takes in a connected graph and returns it labeled with a `leaf` property.
         :param graph: Connected and filtered graph to work with.
@@ -148,14 +145,14 @@ class Sap(object):
             not_leaves_anymore["leaf"] = 0
 
         if self.max_leaf_age is not None:
-            ignored = "\n".join(new_graph.vs.select(PY_eq=None)["name"])
+            ignored = "\n".join(new_graph.vs.select(year_eq=None)["name"])
             logging.info(f"Ignoring these nodes for year calculations:\n{ignored}")
             newest_publication_year: int = max(
-                filter(None, new_graph.vs[potential_leaves]["PY"])
+                filter(None, new_graph.vs[potential_leaves]["year"])
             )
             earliest_publication_year = newest_publication_year - self.max_leaf_age
             not_leaves_anymore = graph.vs.select(
-                PY_ne=None, PY_gt=earliest_publication_year
+                year_ne=None, year_gt=earliest_publication_year
             )
             not_leaves_anymore["leaf"] = 0
 
@@ -166,7 +163,7 @@ class Sap(object):
 
         return new_graph
 
-    def trunk(self, graph: ig.Graph) -> ig.Graph:
+    def trunk(self, graph: Graph) -> Graph:
         """
         Tags leaves.
         """
@@ -190,7 +187,7 @@ class Sap(object):
 
         return new_graph
 
-    def clear(self, graph: ig.Graph) -> ig.Graph:
+    def clear(self, graph: Graph) -> Graph:
         """
         Returns a copy of the graph clear of untagged nodes.
         """
@@ -200,7 +197,7 @@ class Sap(object):
         )
         return graph
 
-    def tree(self, graph: ig.Graph, clear: Optional[bool] = None) -> ig.Graph:
+    def tree(self, graph: Graph, clear: Optional[bool] = None) -> Graph:
         """
         Computes the whole tree.
         """
@@ -214,25 +211,25 @@ class Sap(object):
         return graph
 
 
-def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
+def load(collection: CachedCollection) -> Iterator[Graph]:
     """
     Takes in a collection of bibliographic records and gets out all the
     connected components of their citation graph.
 
-    :param CollectionLazy collection: bibliographic collection
+    :param CachedCollection collection: bibliographic collection
     :return: iterator over the connected components
     """
-    vertices = {}
+    metadata = {}
     pair_labels = []
-    for article, reference in collection.citation_pairs(
-        pair_parser=collection.metadata_pair_parser
-    ):
-        art_label, vertices[art_label] = article
-        ref_label, vertices[ref_label] = reference
-        pair_labels.append((art_label, ref_label))
+    for article, reference in collection.citation_pairs():
+        article_label = article.label
+        reference_label = reference.label
+        metadata[article_label] = article.to_dict()
+        metadata[reference_label] = reference.to_dict()
+        pair_labels.append((article_label, reference_label))
 
-    graph = ig.Graph(directed=True)
-    for label, attrs in vertices.items():
+    graph = Graph(directed=True)
+    for label, attrs in metadata.items():
         graph.add_vertex(name=label, label=label, **attrs)
 
     graph.add_edges(pair_labels)
@@ -243,29 +240,39 @@ def load(collection: CollectionLazy) -> Iterator[ig.Graph]:
         lambda v: v.indegree() != 1 or v.outdegree() != 0
     ).indices
     graph = graph.subgraph(valid_vs)
-    for component in graph.clusters(MODE_WEAK):
-        subgraph = graph.subgraph(component)
+    graph = _break_loops(graph)
+    for subgraph in graph.decompose(MODE_WEAK, minelements=2):
         if len(subgraph.vs.select(_indegree_gt=0, _outdegree_gt=0)) > 0:
             yield subgraph
 
 
-def giant(collection: CollectionLazy) -> ig.Graph:
+def giant(collection: CachedCollection) -> Graph:
     """
     Takes in a collection of bibliographic records and gets out the giant pre
     processed connected component.
 
-    :param CollectionLazy collection: bibliographic collection
+    :param CachedCollection collection: bibliographic collection
     :return: connected component graph
     """
-    return next(load(collection))
+    return next(load(collection), None)
 
 
-def _sorted_nodes(graph: ig.Graph, by: str, reverse: bool = True) -> List[int]:
+def _sorted_nodes(graph: Graph, by: str, reverse: bool = True) -> List[int]:
     indices = graph.vs.indices
     attribtes = graph.vs[indices][by]
     return [
         index
-        for index, _attribute in sorted(
+        for index, _ in sorted(
             zip(indices, attribtes), key=lambda item: item[1], reverse=reverse,
         )
     ]
+
+
+def _break_loops(graph: Graph) -> Graph:
+    loops = graph.decompose(MODE_STRONG, minelements=2)
+    _graph = graph.copy()
+    for loop in loops:
+        edges = [(e.source_vertex["label"], e.target_vertex["label"]) for e in loop.es]
+        _graph.delete_edges(edges)
+    _graph.simplify()
+    return _graph

@@ -10,7 +10,7 @@ with open("README.md") as readme_file:
 requirements = [
     "Click>=7.0,<8",
     "python-igraph>=0.8.0,<1",
-    "wostools>=1.1.0,<2",
+    "wostools>=2.0.5,<3",
 ]
 
 setup_requirements = [
@@ -52,6 +52,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/coreofscience/python-sap",
-    version="0.1.1",
+    version="1.0.0",
     zip_safe=False,
 )

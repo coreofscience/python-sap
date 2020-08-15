@@ -3,7 +3,7 @@ import logging
 
 import click
 
-from sap import CollectionLazy, Sap, giant, load
+from sap import CachedCollection, Sap, giant, load
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def export(ctx, sources, output):
     Creates a tree from a set of files and stores it in graphml format.
     """
     sapper = ctx.obj["sapper"]
-    graph = giant(CollectionLazy(*sources))
+    graph = giant(CachedCollection(*sources))
     graph = sapper.tree(graph)
     graph.write(output, format="graphml")
 
@@ -84,7 +84,7 @@ def describe(ctx, sources, output):
     Describe every graph in a given bibliography collection.
     """
     sapper = ctx.obj["sapper"]
-    for graph in load(CollectionLazy(*sources)):
+    for graph in load(CachedCollection(*sources)):
         try:
             graph = sapper.tree(graph)
             click.echo(graph.summary() + "\n")
@@ -150,11 +150,11 @@ def root(ctx, sources, output, _open):
 
 
 def show(part, sapper, sources, output, _open):
-    for graph in load(CollectionLazy(*sources)):
+    for graph in load(CachedCollection(*sources)):
         tree = sapper.tree(graph)
         items = sorted(
             [
-                (vs[part], vs["name"], vs["DI"])
+                (vs[part], vs["name"], vs.attributes().get("DI"))
                 for vs in tree.vs.select(**{f"{part}_gt": 0})
             ],
             key=lambda t: t[0],
