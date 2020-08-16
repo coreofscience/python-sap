@@ -1,5 +1,9 @@
 # History
 
+## 1.0.2 (2020-08-15)
+
+- Fixed small styling issue on the template.
+
 ## 1.0.1 (2020-08-15)
 
 - Fixed bug with `template.html` distribution.
