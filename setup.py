@@ -47,7 +47,7 @@ setup(
     keywords="python-sap",
     name="python-sap",
     packages=find_packages(where="src"),
-    package_dir={"sap": "src/sap"},
+    package_dir={"": "src/", "sap": "src/sap"},
     package_data={"sap": ["template.html"]},
     setup_requires=setup_requirements,
     test_suite="tests",
