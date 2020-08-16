@@ -8,7 +8,7 @@ from wostools import CachedCollection
 
 __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 MODE_IN = "IN"
 MODE_OUT = "OUT"
