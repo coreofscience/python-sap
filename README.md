@@ -64,6 +64,16 @@ graph = giant(CachedCollection(file1, file2, ...))
 tree = sap.tree(giant)
 ```
 
+Or if you prefer to user the filenames, you may use:
+
+```python
+from sap import load, Sap, CachedCollection
+
+sap = Sap()
+graph = giant(CachedCollection.from_filenames(filename1, filename2, ...))
+tree = sap.tree(graph)
+```
+
 then `tree` is an `igraph.Graph` labeled with all the things you would need
 for analysis.
 
