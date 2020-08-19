@@ -1,7 +1,7 @@
 # python-sap
 
 ![Python package](https://github.com/coreofscience/python-wostools/workflows/Python%20package/badge.svg)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/coreofscience/python-sap/v1.0.2?filepath=example.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/coreofscience/python-sap/main?urlpath=lab/tree/example/example.ipynb)
 
 SAP Algorithm written in Python.
 
@@ -57,11 +57,21 @@ to explore all the commands and options you can use.
 The Python API is quite small, here's the minimal working example:
 
 ```python
-from sap import load, Sap, CachedCollection
+from sap import load, Sap, CachedCollection, giant
 
 sap = Sap()
 graph = giant(CachedCollection(file1, file2, ...))
 tree = sap.tree(giant)
+```
+
+Or if you prefer to user the filenames, you may use:
+
+```python
+from sap import load, Sap, CachedCollection, giant
+
+sap = Sap()
+graph = giant(CachedCollection.from_filenames(filename1, filename2, ...))
+tree = sap.tree(graph)
 ```
 
 then `tree` is an `igraph.Graph` labeled with all the things you would need

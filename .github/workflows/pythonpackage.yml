@@ -46,7 +46,7 @@ jobs:
 
     - name: Test with sample data
       run: |
-        sap describe data/sample.isi
-        sap root data/sample.isi
-        sap trunk data/sample.isi
-        sap leaf data/sample.isi
+        sap describe example/sample.isi
+        sap root example/sample.isi
+        sap trunk example/sample.isi
+        sap leaf example/sample.isi
