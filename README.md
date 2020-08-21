@@ -61,7 +61,7 @@ from sap import load, Sap, CachedCollection, giant
 
 sap = Sap()
 graph = giant(CachedCollection(file1, file2, ...))
-tree = sap.tree(giant)
+tree = sap.tree(graph)
 ```
 
 Or if you prefer to user the filenames, you may use:
