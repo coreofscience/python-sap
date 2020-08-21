@@ -1,6 +1,6 @@
 # python-sap
 
-![Python package](https://github.com/coreofscience/python-wostools/workflows/Python%20package/badge.svg)
+![Python package](https://github.com/coreofscience/python-sap/workflows/Python%20package/badge.svg)
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/coreofscience/python-sap/v1.0.2?filepath=example.ipynb)
 
 SAP Algorithm written in Python.
