@@ -10,7 +10,7 @@ with open("README.md") as readme_file:
 requirements = [
     "Click>=7.0,<8",
     "python-igraph>=0.8.0,<1",
-    "wostools>=2.0.5,<3",
+    "wostools>=2.0.6,<3",
 ]
 
 setup_requirements = [
@@ -38,7 +38,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     description="Python Tree of Science package",
-    entry_points={"console_scripts": ["sap=sap.cli:main",],},
+    entry_points={"console_scripts": ["sap=sap.cli:main"]},
     install_requires=requirements,
     license="MIT license",
     long_description=readme,
