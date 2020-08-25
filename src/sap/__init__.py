@@ -145,8 +145,12 @@ class Sap:
             not_leaves_anymore["leaf"] = 0
 
         if self.max_leaf_age is not None:
-            ignored = "\n".join(new_graph.vs.select(year_eq=None)["name"])
-            logging.info(f"Ignoring these nodes for year calculations:\n{ignored}")
+            ignored = new_graph.vs.select(year_eq=None)
+            ignored = [
+                {attr: v[attr] for attr in ignored.attributes()} for v in ignored
+            ]
+            if ignored:
+                logging.info(f"Ignoring these nodes for year calculations:\n{ignored}")
             newest_publication_year: int = max(
                 filter(None, new_graph.vs[potential_leaves]["year"])
             )
@@ -155,6 +159,12 @@ class Sap:
                 year_ne=None, year_gt=earliest_publication_year
             )
             not_leaves_anymore["leaf"] = 0
+
+        if not any(new_graph.vs["leaf"]) and any(new_graph.vs["extended_leaf"]):
+            logging.info(
+                f"Reverting leaf cut policies, as they remove all possible leaves"
+            )
+            new_graph.vs["leaf"] = new_graph.vs["extended_leaf"]
 
         if self.max_leaves is not None:
             sorted_leaves = _sorted_nodes(new_graph, "leaf")

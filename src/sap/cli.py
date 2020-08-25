@@ -90,7 +90,7 @@ def describe(ctx, sources, output):
             click.echo(graph.summary() + "\n")
         except TypeError:
             logger.exception(
-                f"There was an error processin the graph\n{graph.summary()}"
+                f"There was an error processing the graph\n{graph.summary()}"
             )
 
 
