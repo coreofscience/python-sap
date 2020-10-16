@@ -10,7 +10,7 @@ with open("README.md") as readme_file:
 requirements = [
     "Click>=7.0,<8",
     "python-igraph>=0.8.0,<1",
-    "wostools>=2.0.7,<3",
+    "wostools>=3.0.2,<4",
 ]
 
 setup_requirements = [
@@ -33,9 +33,9 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
     ],
     description="Python Tree of Science package",
     entry_points={"console_scripts": ["sap=sap.cli:main"]},
@@ -53,6 +53,6 @@ setup(
     test_suite="tests",
     tests_require=test_requirements,
     url="https://github.com/coreofscience/python-sap",
-    version="1.0.2",
+    version="2.0.0",
     zip_safe=False,
 )

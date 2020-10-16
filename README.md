@@ -57,20 +57,20 @@ to explore all the commands and options you can use.
 The Python API is quite small, here's the minimal working example:
 
 ```python
-from sap import load, Sap, CachedCollection, giant
+from sap import load, Sap, Collection, giant
 
 sap = Sap()
-graph = giant(CachedCollection(file1, file2, ...))
+graph = giant(Collection(file1, file2, ...))
 tree = sap.tree(graph)
 ```
 
 Or if you prefer to user the filenames, you may use:
 
 ```python
-from sap import load, Sap, CachedCollection, giant
+from sap import load, Sap, Collection, giant
 
 sap = Sap()
-graph = giant(CachedCollection.from_filenames(filename1, filename2, ...))
+graph = giant(Collection.from_filenames(filename1, filename2, ...))
 tree = sap.tree(graph)
 ```
 

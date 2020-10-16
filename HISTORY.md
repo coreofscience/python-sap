@@ -1,5 +1,10 @@
 # History
 
+## 2.0.0 (2020-10-16)
+
+- Uses a newer version of `python-wostools` that adds support to scopus.
+- Now you can mix and match ISI and Scopus RIS files in your trees.
+
 ## 1.0.2 (2020-08-15)
 
 - Fixed small styling issue on the template.
