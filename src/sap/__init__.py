@@ -8,7 +8,7 @@ from wostools import Collection
 
 __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
-__version__ = "1.0.2"
+__version__ = "2.0.0"
 
 MODE_IN = "IN"
 MODE_OUT = "OUT"
