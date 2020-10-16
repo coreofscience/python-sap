@@ -10,7 +10,7 @@ with open("README.md") as readme_file:
 requirements = [
     "Click>=7.0,<8",
     "python-igraph>=0.8.0,<1",
-    "wostools>=2.0.7,<3",
+    "wostools>=3.0.2,<4",
 ]
 
 setup_requirements = [

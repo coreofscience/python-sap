@@ -4,7 +4,7 @@ import logging
 from typing import Iterator, List, Optional
 
 from igraph import Graph
-from wostools import CachedCollection
+from wostools import Collection
 
 __author__ = """Daniel Stiven Valencia Hernadez"""
 __email__ = "dsvalenciah@gmail.com"
@@ -221,12 +221,12 @@ class Sap:
         return graph
 
 
-def load(collection: CachedCollection) -> Iterator[Graph]:
+def load(collection: Collection) -> Iterator[Graph]:
     """
     Takes in a collection of bibliographic records and gets out all the
     connected components of their citation graph.
 
-    :param CachedCollection collection: bibliographic collection
+    :param Collection collection: bibliographic collection
     :return: iterator over the connected components
     """
     metadata = {}
@@ -251,17 +251,18 @@ def load(collection: CachedCollection) -> Iterator[Graph]:
     ).indices
     graph = graph.subgraph(valid_vs)
     graph = _break_loops(graph)
+    yield graph
     for subgraph in graph.decompose(MODE_WEAK, minelements=2):
         if len(subgraph.vs.select(_indegree_gt=0, _outdegree_gt=0)) > 0:
             yield subgraph
 
 
-def giant(collection: CachedCollection) -> Graph:
+def giant(collection: Collection) -> Graph:
     """
     Takes in a collection of bibliographic records and gets out the giant pre
     processed connected component.
 
-    :param CachedCollection collection: bibliographic collection
+    :param Collection collection: bibliographic collection
     :return: connected component graph
     """
     return next(load(collection), None)
